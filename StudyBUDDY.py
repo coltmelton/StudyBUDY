@@ -1,3 +1,4 @@
+#StudyBUDDY.py
 import sys
 import threading
 import asyncio
@@ -7,11 +8,12 @@ import json
 import base64
 import numpy as np
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLabel, QPushButton
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QTextCursor
 from PySide6.QtCore import QTimer
 import os
 from dotenv import load_dotenv
-from Live_Transcription import DeepgramLiveTranscriber
+from WhisperLiveTranscriber import WhisperLiveTranscriber
+
 
 
 #Window
@@ -89,34 +91,31 @@ class StudyApp(QWidget):
         return f"#{r:02x}{g:02x}{b:02x}"
 
 
+    #Fill in the transcript box
     def update_gui(self, transcript=None, volume=None):
-        if transcript:
-            self.transcript_text.moveCursor(self.transcript_text.textCursor().End)
-            self.transcript_text.insertPlainText(transcript + "\n")
-            self.transcript_text.ensureCursorVisible()
+        #Only add non-empty lines
+        if transcript is not None:
+            if transcript.strip():  #Only add non-empty lines
+                self.transcript_text.moveCursor(QTextCursor.End)
+                self.transcript_text.insertPlainText(transcript + "\n")
+                self.transcript_text.ensureCursorVisible()
         if volume is not None:
-            self.mic_label.setText(f"Mic Volume: {int(volume)}")
+            display_volume = min(int(volume * 10), 9999)
+            self.mic_label.setText(f"Mic Volume: {display_volume}")
+
+
 
 
     #Live transcription
     def start_transcription(self):
         if self.transcriber_thread and self.transcriber_thread.is_alive():
             return
-        self.transcriber = DeepgramLiveTranscriber(self.update_gui)
-
-        def run_transcriber():
-            if sys.platform.startswith("win"):
-                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.transcriber.transcribe())
-
-        self.transcriber_thread = threading.Thread(target=run_transcriber, daemon=True)
-        self.transcriber_thread.start()
+        self.transcriber = WhisperLiveTranscriber(self.update_gui, model_size="base")
+        self.transcriber.start()
 
     def stop_transcription(self):
         if self.transcriber:
-            self.transcriber._stop_microphone()
+            self.transcriber.stop()
             self.transcriber = None
 
 if __name__ == "__main__":
