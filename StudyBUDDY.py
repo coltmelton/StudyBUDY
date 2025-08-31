@@ -1,4 +1,3 @@
-#StudyBUDDY.py
 import sys
 import threading
 import asyncio
@@ -14,8 +13,6 @@ import os
 from dotenv import load_dotenv
 from WhisperLiveTranscriber import WhisperLiveTranscriber
 
-
-
 #Window
 class StudyApp(QWidget):
     def __init__(self):
@@ -29,7 +26,7 @@ class StudyApp(QWidget):
         layout.addWidget(self.mic_label)
 
         #Transcript
-        self.transcript_text = QTextEdit(readOnly=True)
+        self.transcript_text = QTextEdit(readOnly=False)
         self.transcript_text.setPlaceholderText("Transcript will show up here")
         self.transcript_text.setMinimumHeight(300)
         layout.addWidget(self.transcript_text)
@@ -73,14 +70,23 @@ class StudyApp(QWidget):
         self.transcriber = None
         self.transcriber_thread = None
 
-
     def create_button(self, text, color, tooltip):
-        btn = QPushButton(text)
-        btn.setToolTip(tooltip)
-        btn.setFont(QFont("Arial", 10, QFont.Bold))
-        btn.setStyleSheet(f"""QPushButton {{background-color: {color};color: white;padding: 8px;border-radius: 5px;}}QPushButton:hover {{background-color: {self.lighten_color(color, 30)};}}""")
-        btn.setMinimumHeight(40)
-        return btn
+        button = QPushButton(text)
+        button.setToolTip(tooltip)
+        button.setFont(QFont("Arial", 10, QFont.Bold))
+        button.setStyleSheet(f"""QPushButton {{background-color: {color};color: white;padding: 8px;border-radius: 5px;}}QPushButton:hover {{background-color: {self.lighten_color(color, 30)};}}""")
+        button.setMinimumHeight(40)
+
+        #Highlight button
+        button.clicked.connect(self.make_highlight_button(button))
+
+        return button
+
+    def make_highlight_button(self, button):
+        """Return a function that highlights this specific button when clicked."""
+        def handler():
+            self.highlight_button(button)
+        return handler
 
     def lighten_color(self, hex_color, amount=30):
         hex_color = hex_color.lstrip("#")
@@ -90,6 +96,25 @@ class StudyApp(QWidget):
         b = min(b + amount, 255)
         return f"#{r:02x}{g:02x}{b:02x}"
 
+
+    def highlight_button(self, active_button):
+        #Reset all buttons to their original colors
+        buttons = [
+            (self.start_button, "#4CAF50"),
+            (self.stop_button, "#f44336"),
+            (self.load_button, "#2196F3"),
+            (self.save_audio_button, "#FF9800"),
+            (self.summarize_button, "#9C27B0"),
+            (self.flashcards_button, "#3F51B5"),
+            (self.study_blocks_button, "#795548"),
+        ]
+
+        for button, color in buttons:
+            button.setStyleSheet(f"""QPushButton {{background-color: {color};color: white;padding: 8px;border-radius: 5px;}}QPushButton:hover {{background-color: {self.lighten_color(color, 30)};}}""")
+
+        #Yellow highlight to active button
+        if active_button:
+            active_button.setStyleSheet(active_button.styleSheet() + " QPushButton { border: 3px solid yellow; }")
 
     #Fill in the transcript box
     def update_gui(self, transcript=None, volume=None):
@@ -103,16 +128,15 @@ class StudyApp(QWidget):
             display_volume = min(int(volume * 10), 9999)
             self.mic_label.setText(f"Mic Volume: {display_volume}")
 
-
-
-
-    #Live transcription
+    #Start transcription button functionality
     def start_transcription(self):
         if self.transcriber_thread and self.transcriber_thread.is_alive():
             return
         self.transcriber = WhisperLiveTranscriber(self.update_gui, model_size="base")
-        self.transcriber.start()
+        self.transcriber_thread = threading.Thread(target=self.transcriber.start, daemon=True)
+        self.transcriber_thread.start()
 
+    # transcription button functionality
     def stop_transcription(self):
         if self.transcriber:
             self.transcriber.stop()
