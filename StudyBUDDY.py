@@ -6,12 +6,13 @@ import websockets
 import json
 import base64
 import numpy as np
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLabel, QPushButton
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLabel, QPushButton, QFileDialog
 from PySide6.QtGui import QFont, QTextCursor
 from PySide6.QtCore import QTimer
 import os
 from dotenv import load_dotenv
 from WhisperLiveTranscriber import WhisperLiveTranscriber
+from datetime import datetime
 
 #Window
 class StudyApp(QWidget):
@@ -44,6 +45,7 @@ class StudyApp(QWidget):
         layout.addWidget(self.stop_button)
 
         self.save_audio_button = self.create_button("Save Audio", "#FF9800", "Save the recorded audio locally.")
+        self.save_audio_button.clicked.connect(self.save_transcription)
         layout.addWidget(self.save_audio_button)
 
         self.summarize_button = self.create_button("Auto-Summarize Lecture", "#9C27B0", "Summarize transcript into key points.")
@@ -116,6 +118,7 @@ class StudyApp(QWidget):
         if active_button:
             active_button.setStyleSheet(active_button.styleSheet() + " QPushButton { border: 3px solid yellow; }")
 
+
     #Fill in the transcript box
     def update_gui(self, transcript=None, volume=None):
         #Only add non-empty lines
@@ -127,6 +130,7 @@ class StudyApp(QWidget):
         if volume is not None:
             display_volume = min(int(volume * 10), 9999)
             self.mic_label.setText(f"Mic Volume: {display_volume}")
+
 
     #Start transcription button functionality
     def start_transcription(self):
@@ -141,6 +145,32 @@ class StudyApp(QWidget):
         if self.transcriber:
             self.transcriber.stop()
             self.transcriber = None
+
+    #Save audio functionality
+    def save_transcription(self):
+        transcript = self.transcript_text.toPlainText()
+
+        #If there's no transcript, don't allow a save
+        if not transcript.strip():
+            print("No Transcript to save.")
+            return
+
+        date_time = datetime.now()
+        date_format = date_time.strftime("%M/%D/%Y")
+        file_name = f"Lecture_{date_format}"
+
+        #Let the user choose the file path
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Transcript", "", "Text Files (*.txt)")
+        if file_path:
+            try:
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(transcript)
+                print(f"Transcript saved to {file_path}")
+            except IOError as e:
+                print(f"Error saving file: {e}")
+
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
