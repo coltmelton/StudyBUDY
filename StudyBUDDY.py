@@ -34,13 +34,14 @@ class StudyApp(QWidget):
 
         #Buttons
         self.load_button = self.create_button("Load Audio / Video", "#2196F3", "Select an audio or video file to transcribe.")
+        self.load_button.clicked.connect(self.load_audio_video)
         layout.addWidget(self.load_button)
 
-        self.start_button = self.create_button("▶ Start Live Transcription", "#4CAF50", "Begin live transcription using your microphone.")
+        self.start_button = self.create_button("Start Live Transcription", "#4CAF50", "Begin live transcription using your microphone.")
         self.start_button.clicked.connect(self.start_transcription)
         layout.addWidget(self.start_button)
 
-        self.stop_button = self.create_button("■ Stop Live Transcription", "#f44336", "Stop the ongoing live transcription.")
+        self.stop_button = self.create_button("Stop Live Transcription", "#f44336", "Stop the ongoing live transcription.")
         self.stop_button.clicked.connect(self.stop_transcription)
         layout.addWidget(self.stop_button)
 
@@ -169,6 +170,37 @@ class StudyApp(QWidget):
             except IOError as e:
                 print(f"Error saving file: {e}")
 
+
+    #Load file to be transcribed
+    def load_audio_video(self):
+        #Only transcribe .wav files
+        file_path, file_filter = QFileDialog.getOpenFileName(self,"Select Audio/Video File","","Wav Files (*.wav)")
+
+        if not file_path:
+            return
+
+        if not file_path.lower().endswith(".wav"):
+            print("Error: Please select a valid .wav file.")
+            return
+
+        if not os.path.exists(file_path):
+            print("Error: File does not exist.")
+            return
+
+        #Import transcribe files class
+        from FileTranscriber import FileTranscriber
+
+        #Insert the text to the box
+        def gui_update(text):
+            self.transcript_text.moveCursor(QTextCursor.End)
+            self.transcript_text.insertPlainText(text + "\n")
+            self.transcript_text.ensureCursorVisible()
+
+
+        transcriber = FileTranscriber(update_callback=gui_update, model_size="base")
+
+        #Transcribe the file
+        transcriber.transcribe(file_path)
 
 
 
