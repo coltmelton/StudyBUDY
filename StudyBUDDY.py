@@ -195,10 +195,14 @@ class StudyApp(QWidget):
             self.transcript_text.insertPlainText(text + "\n")
             self.transcript_text.ensureCursorVisible()
 
+        print("Uploading audio file...")
+
         transcriber = FileTranscriber(update_callback=gui_update, model_size="base")
 
         #Transcribe the file
         transcriber.transcribe(file_path)
+        print("Audio file uploaded successfully.")
+
 
     #Auto summarize transcripts
     def auto_summarize(self):
