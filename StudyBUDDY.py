@@ -1,3 +1,4 @@
+#StudyBuddy.py
 import sys
 import threading
 import asyncio
@@ -8,11 +9,10 @@ import base64
 import numpy as np
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QTextEdit, QLabel, QPushButton, QFileDialog
 from PySide6.QtGui import QFont, QTextCursor
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, QMetaObject, Qt
 import os
-from dotenv import load_dotenv
 from WhisperLiveTranscriber import WhisperLiveTranscriber
-from datetime import datetime
+from ollama_SummarizeText import SummarizeText
 
 #Window
 class StudyApp(QWidget):
@@ -45,11 +45,13 @@ class StudyApp(QWidget):
         self.stop_button.clicked.connect(self.stop_transcription)
         layout.addWidget(self.stop_button)
 
-        self.save_audio_button = self.create_button("Save Audio", "#FF9800", "Save the recorded audio locally.")
+        self.save_audio_button = self.create_button("Save Transcript", "#FF9800", "Save the recorded audio locally.")
         self.save_audio_button.clicked.connect(self.save_transcription)
         layout.addWidget(self.save_audio_button)
 
         self.summarize_button = self.create_button("Auto-Summarize Lecture", "#9C27B0", "Summarize transcript into key points.")
+        self.summarizer = SummarizeText(model="llama3:8b")
+        self.summarize_button.clicked.connect(self.auto_summarize)
         layout.addWidget(self.summarize_button)
 
         self.flashcards_button = self.create_button("Generate Flashcards", "#3F51B5", "Generate Anki-ready flashcards.")
@@ -156,10 +158,6 @@ class StudyApp(QWidget):
             print("No Transcript to save.")
             return
 
-        date_time = datetime.now()
-        date_format = date_time.strftime("%M/%D/%Y")
-        file_name = f"Lecture_{date_format}"
-
         #Let the user choose the file path
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Transcript", "", "Text Files (*.txt)")
         if file_path:
@@ -190,18 +188,82 @@ class StudyApp(QWidget):
         #Import transcribe files class
         from FileTranscriber import FileTranscriber
 
+
         #Insert the text to the box
         def gui_update(text):
             self.transcript_text.moveCursor(QTextCursor.End)
             self.transcript_text.insertPlainText(text + "\n")
             self.transcript_text.ensureCursorVisible()
 
-
         transcriber = FileTranscriber(update_callback=gui_update, model_size="base")
 
         #Transcribe the file
         transcriber.transcribe(file_path)
 
+    #Auto summarize transcripts
+    def auto_summarize(self):
+        transcript = self.transcript_text.toPlainText()
+        if not transcript.strip():
+            self.summarize_text.setPlainText("No transcript available to summarize.")
+            return
+
+        self.summarize_text.setPlainText("Summarizing... please wait.")
+
+        #Disable the button to prevent multiple requests
+        self.summarize_button.setEnabled(False)
+
+        # store results in instance variables for thread communication
+        self.summary_result = None
+        self.summary_success = False
+
+
+        def run_in_thread():
+            try:
+                print(f"Starting summarization...")
+                summary = self.summarizer.summarize(transcript)
+                print(f"Summarization complete.")
+
+                #store results in instance variables
+                self.summary_result = summary
+                self.summary_success = True
+            except Exception as e:
+                error_msg = f"Error during summarization: {str(e)}"
+                print(error_msg)
+                self.summary_result = error_msg
+                self.summary_success = False
+
+        #Start thread
+        threading.Thread(target=run_in_thread, daemon=True).start()
+
+        #QTimer to check for completion periodically
+        self.summary_check_timer = QTimer()
+        self.summary_check_timer.timeout.connect(self.check_summary_complete)
+        #Check every 100ms
+        self.summary_check_timer.start(100)
+
+
+    def check_summary_complete(self):
+        if self.summary_result is not None:
+            #Stop the timer
+            self.summary_check_timer.stop()
+
+            #Update the GUI with the result
+            self.actually_update_summary(self.summary_result, self.summary_success)
+
+            self.summary_result = None
+
+
+    #Update gui and reset everything
+    def actually_update_summary(self, result, success=True):
+
+        self.summarize_text.setPlainText(result)
+        self.summarize_button.setEnabled(True)
+        self.summarize_button.setText("Auto-Summarize Lecture")
+
+        if success:
+            print("Summary updated successfully in GUI")
+        else:
+            print("Error message updated in GUI")
 
 
 if __name__ == "__main__":

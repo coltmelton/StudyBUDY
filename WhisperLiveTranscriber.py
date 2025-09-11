@@ -1,3 +1,4 @@
+#WhisperLiveTranscriber.py
 import threading
 import queue
 import numpy as np
