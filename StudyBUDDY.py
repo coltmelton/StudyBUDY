@@ -277,15 +277,18 @@ class StudyApp(QWidget):
             print("Error message updated in GUI")
 
 
+    #Generate flashcards
     def generate_flashcards(self):
         from anki_GenerateFlashcards import GenerateFlashcards
         anki = GenerateFlashcards()
 
+        #Check if there's any text
         flashcards_text = self.flashcards_text.toPlainText()
         if not flashcards_text.strip():
             print("No flashcards available to push.")
             return
 
+        #Create a deck inside of ANKI
         try:
             anki.create_deck("StudyBuddy Deck")
             result = anki.add_flashcards(flashcards_text, deck_name="StudyBuddy Deck")
@@ -294,6 +297,7 @@ class StudyApp(QWidget):
             print(f"Error pushing to Anki: {e}")
 
 
+    #Create study blocks by calling the class
     def on_study_blocks_clicked(self):
         create_study_blocks(self)
 
