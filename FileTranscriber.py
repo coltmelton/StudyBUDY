@@ -1,4 +1,3 @@
-#FileTranscriber.py
 import os
 import whisper
 

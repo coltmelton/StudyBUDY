@@ -54,6 +54,12 @@ Follow this format strictly:
 **Summary / Takeaways:**
 - Capture the most important points and overall insights from the lecture
 
+**Suggested Flashcards:**
+- Write at least 3 question/answer flashcards that would help a student study this lecture.
+- Format them like this:
+  Q: [Question]
+  A: [Answer]
+
 Do not include anything outside of this format. Keep it concise, clear, and easy for a student to study from.
 
 Lecture Transcript:

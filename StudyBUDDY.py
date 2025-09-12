@@ -1,4 +1,3 @@
-#StudyBuddy.py
 import sys
 import threading
 import asyncio
@@ -55,6 +54,7 @@ class StudyApp(QWidget):
         layout.addWidget(self.summarize_button)
 
         self.flashcards_button = self.create_button("Generate Flashcards", "#3F51B5", "Generate Anki-ready flashcards.")
+        self.flashcards_button.clicked.connect(self.generate_flashcards)
         layout.addWidget(self.flashcards_button)
 
         self.study_blocks_button = self.create_button("Create Study Blocks", "#795548", "Schedule study sessions in your calendar.")
@@ -68,7 +68,12 @@ class StudyApp(QWidget):
 
         #Generate flashcards textbox
         self.flashcards_text = QTextEdit()
-        self.flashcards_text.setPlaceholderText("Generated flashcards will appear here")
+        self.flashcards_text.setPlaceholderText("Suggested flashcards are provided from the auto-summarization, but you're free to create your own.\n" \
+        "Please format your flashcards like this:\n" \
+        "Q: What is 2+2?\n" \
+        "A: 4\n" \
+        "Q: What is the largest state in the United States?\n" \
+        "A: Alaska\n")
         self.flashcards_text.setMinimumHeight(150)
         layout.addWidget(self.flashcards_text)
 
@@ -268,6 +273,24 @@ class StudyApp(QWidget):
             print("Summary updated successfully in GUI")
         else:
             print("Error message updated in GUI")
+
+
+    def generate_flashcards(self):
+        from anki_GenerateFlashcards import GenerateFlashcards
+        anki = GenerateFlashcards()
+
+        flashcards_text = self.flashcards_text.toPlainText()
+        if not flashcards_text.strip():
+            print("No flashcards available to push.")
+            return
+
+        try:
+            anki.create_deck("StudyBuddy Deck")
+            result = anki.add_flashcards(flashcards_text, deck_name="StudyBuddy Deck")
+            print("Flashcards pushed to Anki:", result)
+        except Exception as e:
+            print(f"Error pushing to Anki: {e}")
+
 
 
 if __name__ == "__main__":
