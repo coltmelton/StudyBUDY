@@ -12,6 +12,7 @@ from PySide6.QtCore import QTimer, QMetaObject, Qt
 import os
 from WhisperLiveTranscriber import WhisperLiveTranscriber
 from ollama_SummarizeText import SummarizeText
+from StudyBlocks import create_study_blocks
 
 #Window
 class StudyApp(QWidget):
@@ -58,6 +59,7 @@ class StudyApp(QWidget):
         layout.addWidget(self.flashcards_button)
 
         self.study_blocks_button = self.create_button("Create Study Blocks", "#795548", "Schedule study sessions in your calendar.")
+        self.study_blocks_button.clicked.connect(self.on_study_blocks_clicked)
         layout.addWidget(self.study_blocks_button)
 
         #Auto-summarize textbox
@@ -290,6 +292,10 @@ class StudyApp(QWidget):
             print("Flashcards pushed to Anki:", result)
         except Exception as e:
             print(f"Error pushing to Anki: {e}")
+
+
+    def on_study_blocks_clicked(self):
+        create_study_blocks(self)
 
 
 
