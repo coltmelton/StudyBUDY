@@ -1,4 +1,3 @@
-# pip install ics
 import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
