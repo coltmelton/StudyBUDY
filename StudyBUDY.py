@@ -1,17 +1,26 @@
 import os
 import sys
-import AudioVideoTranscribe
-import llamaLLM_Interface
-import Live_Transcription
-
 from dotenv import load_dotenv
 
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QFileDialog, QLabel
-)
+try:
+    from PySide6.QtWidgets import (
+        QApplication,
+        QWidget,
+        QVBoxLayout,
+        QPushButton,
+        QTextEdit,
+        QFileDialog,
+        QLabel,
+        QMessageBox,
+    )
+except ModuleNotFoundError as exc:  # pragma: no cover - import guard
+    raise ImportError(
+        "PySide6 is required for the StudyBUDY desktop client. "
+        "Install it with `pip install PySide6` or `pip install -r requirements.txt`."
+    ) from exc
+
 from AudioVideoTranscribe import transcribe_with_whisper
-from llamaLLM_Interface import call_llama
-from Live_Transcription import DeepgramLiveTranscriber
+from llamaLLM_Interface import generate_structured_notes, generate_study_plan
 
 load_dotenv()
 
@@ -20,8 +29,6 @@ class StudyApp(QWidget):
         super().__init__()
         self.setWindowTitle("StudyBUDY")
         self.resize(800, 600)
-
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
 
         self.layout = QVBoxLayout(self)
 
@@ -38,8 +45,8 @@ class StudyApp(QWidget):
         self.notes_text = QTextEdit(readOnly=True)
         self.layout.addWidget(self.notes_text)
 
-        self.quiz_text = QTextEdit(readOnly=True)
-        self.layout.addWidget(self.quiz_text)
+        self.study_plan_text = QTextEdit(readOnly=True)
+        self.layout.addWidget(self.study_plan_text)
 
         self.live_button = QPushButton("Start Live Transcription")
         self.live_button.clicked.connect(self.start_live_transcription)
@@ -57,34 +64,51 @@ class StudyApp(QWidget):
     def transcribe_file(self, file_path):
         self.transcript_text.setPlainText("Transcribing with Whisper API...")
         try:
-            transcript = transcribe_with_whisper(file_path, self.openai_api_key)
+            transcript = transcribe_with_whisper(file_path)
             self.transcript_text.setPlainText(transcript)
             self.process_notes(transcript)
-            self.generate_quiz(transcript)
+            self.build_study_plan(transcript)
         except Exception as e:
             self.transcript_text.setPlainText(f"Error: {e}")
 
     def process_notes(self, transcript: str):
         self.notes_text.setPlainText("Generating notes...")
-        prompt = f"Convert the following into clear, structured notes:\n\n{transcript}"
         try:
-            notes = call_llama(prompt)
+            notes = generate_structured_notes(transcript)
             self.notes_text.setPlainText(notes)
         except Exception as e:
             self.notes_text.setPlainText(f"Error: {e}")
 
-    def generate_quiz(self, transcript: str):
-        self.quiz_text.setPlainText("Generating quiz...")
-        prompt = f"Create 5 quiz questions based on the following:\n\n{transcript}"
+    def build_study_plan(self, transcript: str):
+        self.study_plan_text.setPlainText("Building study plan...")
         try:
-            quiz = call_llama(prompt)
-            self.quiz_text.setPlainText(quiz)
+            plan = generate_study_plan(transcript)
+            self.study_plan_text.setPlainText(plan)
         except Exception as e:
-            self.quiz_text.setPlainText(f"Error: {e}")
+            self.study_plan_text.setPlainText(f"Error: {e}")
 
     def start_live_transcription(self):
-        transcriber = DeepgramLiveTranscriber()
-        transcriber.start()
+        try:
+            from Live_Transcription import DeepgramLiveTranscriber
+        except ImportError as exc:
+            QMessageBox.warning(
+                self,
+                "Dependency Missing",
+                "Live transcription is unavailable because an optional dependency failed to import.\n\n"
+                f"{exc}",
+            )
+            return
+
+        try:
+            transcriber = DeepgramLiveTranscriber()
+            transcriber.start()
+        except Exception as exc:
+            QMessageBox.warning(
+                self,
+                "Live Transcription Error",
+                "Unable to start live transcription.\n\n"
+                f"{exc}",
+            )
 
 def main():
     app = QApplication(sys.argv)

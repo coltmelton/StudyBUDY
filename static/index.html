@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudyBUDY Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f9fafb; --panel: #ffffff; --muted: #5b6473; --text: #0f172a;
+            --border: #e5e7eb; --accent: #12b76a; --accent-strong: #0c9e57;
+            --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Sora","Segoe UI",sans-serif; background: var(--bg); color: var(--text); }
+        a { color: inherit; text-decoration: none; }
+        .menu { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); background:var(--panel); position:sticky; top:0; z-index:10; }
+        .brand { font-family:"DM Serif Display","Times New Roman",serif; font-size:22px; letter-spacing:-0.01em; }
+        .menu nav { display:flex; gap:18px; color:var(--muted); font-weight:600; }
+        .cta { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(120deg,var(--accent),#15c777); color:#fff; border:none; padding:10px 16px; border-radius:12px; font-weight:700; cursor:pointer; box-shadow:0 12px 30px rgba(18,183,106,0.24); }
+        .hero { display:grid; grid-template-columns:1fr; gap:18px; padding:22px; }
+        .card { background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:var(--shadow); }
+        h1 { margin:6px 0; font-size:28px; letter-spacing:-0.02em; }
+        .lede { margin:0 0 12px; color:var(--muted); line-height:1.6; }
+        .chips { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 14px; }
+        .chip { padding:8px 12px; border-radius:999px; border:1px solid var(--border); color:var(--muted); background:#f3f4f6; font-size:13px; }
+        .button { border:none; border-radius:12px; padding:10px 16px; font-weight:700; cursor:pointer; }
+        .primary { background:linear-gradient(120deg,var(--accent),#15c777); color:#fff; box-shadow:0 10px 24px rgba(18,183,106,0.18); }
+        .ghost { background:var(--panel); color:var(--text); border:1px solid var(--border); }
+        .login label { display:block; margin-top:8px; font-weight:600; font-size:13px; color:var(--muted); }
+        .login input { width:100%; margin-top:6px; padding:10px; border-radius:12px; border:1px solid var(--border); background:#f8fafc; }
+        .small { margin:8px 0 12px; color:var(--muted); font-size:12px; }
+        .view-hidden { display:none !important; }
+        .login-view { padding:22px; display:flex; justify-content:center; }
+        .layout { display:grid; grid-template-columns:1.05fr 280px; gap:18px; padding:0 22px 32px; }
+        .workspace { display:flex; flex-direction:column; gap:14px; }
+        .topbar { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px 18px; box-shadow:var(--shadow); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+        .eyebrow { letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); font-size:11px; }
+        .preview { font-weight:600; max-width:800px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .status { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); padding:7px 12px; border-radius:999px; background:#f0fdf4; border:1px solid #bbf7d0; }
+        .status::before { content:""; width:10px; height:10px; border-radius:50%; background:var(--accent); }
+        .panel { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--shadow); transition:all 0.25s ease; }
+        .panel.collapsed { max-height:0; padding:0 18px; margin:0; opacity:0; overflow:hidden; pointer-events:none; border-color:transparent; box-shadow:none; }
+        .panel-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; }
+        h2 { margin:0; font-size:18px; }
+        .helper { margin:0 0 10px; color:var(--muted); font-size:14px; line-height:1.6; }
+        textarea { width:100%; min-height:320px; border-radius:14px; border:1px solid var(--border); background:#f8fafc; padding:14px; font-family:"SFMono-Regular",Consolas,monospace; font-size:14px; color:var(--text); resize:vertical; line-height:1.6; }
+        textarea:focus { outline:2px solid rgba(18,183,106,0.2); border-color:var(--accent); background:#fff; }
+        .controls { display:flex; align-items:center; gap:10px; margin:10px 0 8px; flex-wrap:wrap; }
+        input[type="file"], input[type="url"] { border:1px dashed var(--border); border-radius:12px; padding:10px; background:#f8fafc; font-weight:600; color:var(--muted); }
+        .pill { background:#f8fafc; border:1px solid var(--border); padding:7px 10px; border-radius:12px; font-size:13px; color:var(--muted); }
+        .pill.error { color:#e55353; border-color:#e55353; background:#fff5f5; }
+        .pill.success { color:var(--accent); border-color:var(--accent); background:#e9fbf5; }
+        .hidden { display:none !important; }
+        .slide-in { transform:translateY(14px); opacity:0; }
+        .slide-in.visible { transform:translateY(0); opacity:1; transition:all 0.25s ease; }
+        .sidebar { background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:18px; box-shadow:var(--shadow); position:sticky; top:84px; align-self:start; }
+        .sidebar h4 { margin:0 0 10px; font-size:15px; color:var(--muted); }
+        .nav-group { display:flex; flex-direction:column; gap:8px; }
+        .nav-button { text-align:left; border:1px solid var(--border); background:#f8fafc; color:var(--text); border-radius:12px; padding:12px 14px; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease; }
+        .nav-button small { display:block; color:var(--muted); font-weight:500; margin-top:4px; font-size:12px; }
+        .nav-button:hover { border-color:var(--accent); }
+        .nav-button.active { background:linear-gradient(120deg,rgba(18,183,106,0.12),rgba(18,183,106,0.06)); border-color:var(--accent); color:var(--accent-strong); box-shadow:0 10px 24px rgba(18,183,106,0.12); }
+        @media (max-width: 1100px) { .hero { grid-template-columns:1fr; } .layout { grid-template-columns:1fr; } .sidebar { position:static; } .topbar { flex-direction:column; align-items:flex-start; } }
+    </style>
+</head>
+<body>
+<header class="menu">
+    <div class="brand">StudyBUDY</div>
+    <nav>
+        <a href="#" data-nav="landing">Get started</a>
+        <a href="#" data-nav="login">Login</a>
+        <a href="#" data-nav="workspace">Workspace</a>
+    </nav>
+    <button class="cta" id="cta-launch">Launch studio</button>
+</header>
+
+<section class="hero view-section" id="get-started" data-view="landing">
+    <div class="card">
+        <div class="eyebrow">Academic mode</div>
+        <h1>Build notes, quizzes, and plans from audio, docs, or links.</h1>
+        <p class="lede">Choose live mic, uploads, PDFs/Docs, or YouTube links. Keep a single focused text area while you generate the study output you need.</p>
+        <div class="chips">
+            <span class="chip">Live & file transcription</span>
+            <span class="chip">PDF / DOCX to notes</span>
+            <span class="chip">YouTube transcript to notes</span>
+            <span class="chip">Quiz, notes, learning plan</span>
+        </div>
+        <div class="controls">
+            <button class="button primary" id="cta-start">Get started</button>
+            <button class="button ghost" onclick="window.open('/docs','_blank');">API docs</button>
+        </div>
+    </div>
+</section>
+
+<section class="login-view view-section view-hidden" id="login-view" data-view="login">
+    <div class="card login" style="max-width:420px; width:100%;">
+        <div class="eyebrow">Welcome back</div>
+        <h3>Login</h3>
+        <p class="small">Access your saved sessions and preferences.</p>
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="you@example.com">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" placeholder="••••••••">
+        <button class="button primary" style="margin-top:12px; width:100%;" id="login-submit">Sign in</button>
+    </div>
+</section>
+
+<section class="layout view-section view-hidden" id="workspace" data-view="workspace">
+    <div class="workspace">
+        <div class="topbar">
+            <div>
+                <div class="eyebrow">Transcript snapshot</div>
+                <div class="preview" id="transcript-preview">No transcript yet.</div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="button ghost" id="toggle-transcript">Collapse transcript</button>
+                <span class="status" id="global-status">Idle</span>
+            </div>
+        </div>
+
+        <section class="panel" id="transcript-panel">
+            <div class="panel-head">
+                <h2 id="transcript-title">Live transcription</h2>
+                <span class="pill" id="transcript-mode-pill">Mic streaming</span>
+            </div>
+            <p class="helper" id="transcript-helper">Start the microphone stream to capture speech continuously. Text refreshes in-line with light corrections to maintain context.</p>
+
+            <div id="live-controls" class="controls">
+                <button class="primary" id="live-toggle">Start live mic</button>
+                <span class="pill" id="live-status">Not recording</span>
+            </div>
+
+            <div id="upload-controls" class="controls hidden">
+                <input id="media-file" type="file" accept=".mp3,.wav,.m4a,.mp4,.mov,.avi">
+                <button class="primary" id="upload-button">Transcribe file</button>
+                <span class="pill" id="upload-status">Waiting</span>
+            </div>
+
+            <textarea id="transcript-output" placeholder="Transcript will appear here or type to edit..."></textarea>
+        </section>
+
+        <section class="panel slide-in hidden" id="generation-panel">
+            <div class="panel-head">
+                <h2 id="generation-title">Generate</h2>
+                <span class="pill" id="generation-pill">Output</span>
+            </div>
+            <p class="helper" id="generation-helper">Select a mode to begin.</p>
+
+            <div id="doc-controls" class="controls hidden">
+                <input id="doc-file" type="file" accept=".pdf,.doc,.docx,.txt">
+                <button class="primary" id="doc-notes-button" type="button">Create notes</button>
+                <span class="pill" id="doc-status">Waiting</span>
+            </div>
+
+            <div id="youtube-controls" class="controls hidden">
+                <input id="youtube-url" type="url" placeholder="YouTube link (e.g. https://youtu.be/...)" style="flex:1; min-width:240px;">
+                <button class="primary" id="youtube-notes-button" type="button">Create notes</button>
+                <span class="pill" id="youtube-status">Waiting</span>
+            </div>
+
+            <div class="controls" id="generator-controls" style="justify-content:flex-end;">
+                <button class="primary" id="generation-button">Run</button>
+                <span class="pill" id="generation-status">Idle</span>
+            </div>
+            <textarea id="generation-output" placeholder="Generated content will write here..." readonly></textarea>
+        </section>
+    </div>
+
+    <aside class="sidebar">
+        <h4>Choose a path</h4>
+        <div class="nav-group">
+            <button class="nav-button active" data-mode="live">Live transcription<small>Mic input, streaming text</small></button>
+            <button class="nav-button" data-mode="upload">File upload<small>Audio or video transcription</small></button>
+            <button class="nav-button" data-mode="doc-notes">Doc to notes<small>PDF, DOCX, TXT</small></button>
+            <button class="nav-button" data-mode="youtube-notes">YouTube to notes<small>Fetch transcript</small></button>
+            <button class="nav-button" data-mode="quiz">Quiz create<small>Questions + answer key</small></button>
+            <button class="nav-button" data-mode="notes">Notes create<small>Structured study notes</small></button>
+            <button class="nav-button" data-mode="plan">Learning plan<small>3-5 step roadmap</small></button>
+        </div>
+    </aside>
+</section>
+
+<script>
+    const navButtons = document.querySelectorAll('.nav-button');
+    const viewSections = document.querySelectorAll('.view-section');
+    const navLinks = document.querySelectorAll('nav a[data-nav]');
+    const ctaStart = document.getElementById('cta-start');
+    const ctaLaunch = document.getElementById('cta-launch');
+    const loginSubmit = document.getElementById('login-submit');
+    const transcriptPanel = document.getElementById('transcript-panel');
+    const transcriptOutput = document.getElementById('transcript-output');
+    const transcriptTitle = document.getElementById('transcript-title');
+    const transcriptHelper = document.getElementById('transcript-helper');
+    const transcriptModePill = document.getElementById('transcript-mode-pill');
+    const transcriptPreview = document.getElementById('transcript-preview');
+    const toggleTranscriptButton = document.getElementById('toggle-transcript');
+    const globalStatus = document.getElementById('global-status');
+
+    const liveControls = document.getElementById('live-controls');
+    const liveToggle = document.getElementById('live-toggle');
+    const liveStatus = document.getElementById('live-status');
+
+    const uploadControls = document.getElementById('upload-controls');
+    const uploadButton = document.getElementById('upload-button');
+    const uploadStatus = document.getElementById('upload-status');
+    const mediaInput = document.getElementById('media-file');
+
+    const generationPanel = document.getElementById('generation-panel');
+    const generationTitle = document.getElementById('generation-title');
+    const generationHelper = document.getElementById('generation-helper');
+    const generationPill = document.getElementById('generation-pill');
+    const generationButton = document.getElementById('generation-button');
+    const generationStatus = document.getElementById('generation-status');
+    const generationOutput = document.getElementById('generation-output');
+
+    const docControls = document.getElementById('doc-controls');
+    const docFile = document.getElementById('doc-file');
+    const docNotesButton = document.getElementById('doc-notes-button');
+    const docStatus = document.getElementById('doc-status');
+
+    const youtubeControls = document.getElementById('youtube-controls');
+    const youtubeUrl = document.getElementById('youtube-url');
+    const youtubeNotesButton = document.getElementById('youtube-notes-button');
+    const youtubeStatus = document.getElementById('youtube-status');
+
+    const generatorControls = document.getElementById('generator-controls');
+
+    const apiBase = window.location.origin;
+    let currentMode = 'live';
+    let transcriptCollapsed = false;
+    let liveTimer = null;
+    let liveChunkIndex = 0;
+    let currentView = 'landing';
+
+    const generatorMap = {
+        quiz: { title: 'Quiz create', helper: 'Generate 5 concise questions with an answer key.', pill: 'Quiz builder', button: 'Create quiz', endpoint: '/quiz', resultKey: 'quiz', needsTranscript: true },
+        notes: { title: 'Notes create', helper: 'Structured notes from the transcript.', pill: 'Notes', button: 'Create notes', endpoint: '/notes', resultKey: 'notes', needsTranscript: true },
+        plan: { title: 'Learning plan', helper: '3-5 step plan with objectives and resources.', pill: 'Study plan', button: 'Build plan', endpoint: '/study-plan', resultKey: 'study_plan', needsTranscript: true },
+        'doc-notes': { title: 'Doc to notes', helper: 'Upload PDF, DOCX, or TXT and get structured notes.', pill: 'Documents', button: 'Create notes', endpoint: '/document-notes', resultKey: 'notes', needsTranscript: false },
+        'youtube-notes': { title: 'YouTube to notes', helper: 'Fetch the video transcript and turn it into notes.', pill: 'YouTube', button: 'Create notes', endpoint: '/youtube-notes', resultKey: 'notes', needsTranscript: false },
+    };
+
+    function setPill(el, text, type = 'muted') {
+        el.textContent = text;
+        el.classList.remove('error', 'success');
+        if (type === 'error') el.classList.add('error');
+        if (type === 'success') el.classList.add('success');
+    }
+
+    function updateTranscriptPreview() {
+        const text = transcriptOutput.value.trim();
+        if (!text) { transcriptPreview.textContent = 'No transcript yet.'; return; }
+        const clean = text.replace(/\\s+/g, ' ').trim();
+        transcriptPreview.textContent = clean.length > 140 ? clean.slice(0, 140) + '…' : clean;
+    }
+
+    function setGlobalStatus(label) { globalStatus.textContent = label; }
+
+    function showView(view) {
+        currentView = view;
+        viewSections.forEach(section => {
+            const target = section.dataset.view;
+            section.classList.toggle('view-hidden', target !== view);
+        });
+        if (view === 'workspace' && transcriptCollapsed) {
+            collapseTranscript(false);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function stopLiveStream() {
+        if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
+        liveToggle.textContent = 'Start live mic';
+        setPill(liveStatus, 'Not recording');
+        setGlobalStatus('Idle');
+    }
+
+    function startLiveStream() {
+        stopLiveStream();
+        liveToggle.textContent = 'Stop live mic';
+        setPill(liveStatus, 'Listening...', 'success');
+        setGlobalStatus('Streaming');
+        const chunks = [
+            'Discussing differential equations with stability analysis. ',
+            'Key idea: eigenvalues determine equilibrium behavior. ',
+            'Correction: initial conditions shift trajectories but not stability class. ',
+            'Example with logistic growth and carrying capacity. ',
+            'Quick check on phase portraits and nullclines. ',
+            'Reminder: linearization valid near equilibrium points. ',
+        ];
+        liveTimer = setInterval(() => {
+            const chunk = chunks[liveChunkIndex % chunks.length];
+            liveChunkIndex += 1;
+            let current = transcriptOutput.value || '';
+            current += chunk;
+            if (liveChunkIndex % 3 === 0) { current = current.replace(/(stability)/i, 'stability (corrected)'); }
+            transcriptOutput.value = current;
+            updateTranscriptPreview();
+        }, 1100);
+    }
+
+    function collapseTranscript(forceCollapse = !transcriptCollapsed) {
+        transcriptCollapsed = forceCollapse;
+        transcriptPanel.classList.toggle('collapsed', transcriptCollapsed);
+        toggleTranscriptButton.textContent = transcriptCollapsed ? 'Expand transcript' : 'Collapse transcript';
+        if (transcriptCollapsed && isGenerationMode(currentMode)) {
+            generationPanel.classList.remove('hidden');
+            if (!generationPanel.classList.contains('visible')) { requestAnimationFrame(() => generationPanel.classList.add('visible')); }
+        } else if (!transcriptCollapsed && isGenerationMode(currentMode)) {
+            generationPanel.classList.add('hidden');
+            generationPanel.classList.remove('visible');
+        }
+    }
+
+    function isGenerationMode(mode) { return ['quiz','notes','plan','doc-notes','youtube-notes'].includes(mode); }
+
+    function resetControlsVisibility() {
+        docControls.classList.add('hidden');
+        youtubeControls.classList.add('hidden');
+        generatorControls.classList.remove('hidden');
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+        navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+        stopLiveStream();
+        resetControlsVisibility();
+
+        if (mode === 'live') {
+            transcriptTitle.textContent = 'Live transcription';
+            transcriptHelper.textContent = 'Start the microphone stream to capture speech continuously. Text refreshes in-line with light corrections to maintain context.';
+            transcriptModePill.textContent = 'Mic streaming';
+            liveControls.classList.remove('hidden');
+            uploadControls.classList.add('hidden');
+            generationPanel.classList.add('hidden');
+            transcriptPanel.classList.remove('collapsed');
+            transcriptCollapsed = false;
+            toggleTranscriptButton.textContent = 'Collapse transcript';
+            setGlobalStatus('Idle');
+            setPill(liveStatus, 'Not recording');
+            return;
+        }
+
+        if (mode === 'upload') {
+            transcriptTitle.textContent = 'File upload transcription';
+            transcriptHelper.textContent = 'Upload audio or video. Whisper returns a continuous transcript you can refine.';
+            transcriptModePill.textContent = 'Upload';
+            liveControls.classList.add('hidden');
+            uploadControls.classList.remove('hidden');
+            generationPanel.classList.add('hidden');
+            transcriptPanel.classList.remove('collapsed');
+            transcriptCollapsed = false;
+            toggleTranscriptButton.textContent = 'Collapse transcript';
+            setGlobalStatus('Idle');
+            setPill(uploadStatus, 'Waiting');
+            return;
+        }
+
+        const cfg = generatorMap[mode];
+        if (!cfg) return;
+
+        transcriptTitle.textContent = 'Transcript reference';
+        transcriptHelper.textContent = 'The transcript is minimized; expand if you want to review or edit it before generating.';
+        transcriptModePill.textContent = 'Reference';
+        liveControls.classList.add('hidden');
+        uploadControls.classList.add('hidden');
+
+        generationTitle.textContent = cfg.title;
+        generationHelper.textContent = cfg.helper;
+        generationPill.textContent = cfg.pill;
+        generationButton.textContent = cfg.button;
+        setPill(generationStatus, 'Idle');
+        generationOutput.value = '';
+
+        if (mode === 'doc-notes') {
+            docControls.classList.remove('hidden');
+            generatorControls.classList.add('hidden');
+            setPill(docStatus, 'Waiting');
+        } else if (mode === 'youtube-notes') {
+            youtubeControls.classList.remove('hidden');
+            generatorControls.classList.add('hidden');
+            setPill(youtubeStatus, 'Waiting');
+        } else {
+            generatorControls.classList.remove('hidden');
+        }
+
+        generationPanel.classList.remove('hidden', 'visible');
+        generationPanel.classList.add('slide-in');
+        requestAnimationFrame(() => generationPanel.classList.add('visible'));
+
+        collapseTranscript(true);
+        setGlobalStatus('Ready');
+    }
+
+    function transcriptRequired() {
+        const text = transcriptOutput.value.trim();
+        if (!text) { setPill(generationStatus, 'Please transcribe or paste text first.', 'error'); return false; }
+        setPill(generationStatus, 'Ready'); return true;
+    }
+
+    async function runGeneration() {
+        if (!isGenerationMode(currentMode)) return;
+        const cfg = generatorMap[currentMode];
+        if (!cfg.needsTranscript) return;
+        if (!transcriptRequired()) return;
+        setPill(generationStatus, 'Working...');
+        setGlobalStatus('Processing');
+        try {
+            const response = await fetch(`${apiBase}${cfg.endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transcript: transcriptOutput.value })
+            });
+            const payload = await response.json();
+            if (!response.ok) { throw new Error(payload.detail || response.statusText); }
+            generationOutput.value = payload[cfg.resultKey] || '';
+            setPill(generationStatus, 'Done.', 'success');
+            setGlobalStatus('Complete');
+        } catch (error) {
+            setPill(generationStatus, `Error: ${error.message}`, 'error');
+            setGlobalStatus('Error');
+        }
+    }
+
+    async function transcribeUpload() {
+        const file = mediaInput.files[0];
+        if (!file) { setPill(uploadStatus, 'Choose a media file first.', 'error'); return; }
+        setPill(uploadStatus, 'Transcribing...');
+        setGlobalStatus('Transcribing');
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const response = await fetch(`${apiBase}/transcriptions`, { method: 'POST', body: formData });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.detail || response.statusText);
+            transcriptOutput.value = payload.transcript || '';
+            setPill(uploadStatus, 'Transcription complete.', 'success');
+            setGlobalStatus('Complete');
+            updateTranscriptPreview();
+        } catch (error) {
+            setPill(uploadStatus, `Error: ${error.message}`, 'error');
+            setGlobalStatus('Error');
+        }
+    }
+
+    async function runDocNotes() {
+        const file = docFile.files[0];
+        if (!file) { setPill(docStatus, 'Choose a document first.', 'error'); return; }
+        setPill(docStatus, 'Reading document...');
+        setGlobalStatus('Processing');
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const response = await fetch(`${apiBase}/document-notes`, { method: 'POST', body: formData });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.detail || response.statusText);
+            generationOutput.value = payload.notes || '';
+            setPill(docStatus, 'Notes ready.', 'success');
+            setGlobalStatus('Complete');
+        } catch (error) {
+            setPill(docStatus, `Error: ${error.message}`, 'error');
+            setGlobalStatus('Error');
+        }
+    }
+
+    async function runYouTubeNotes() {
+        const url = youtubeUrl.value.trim();
+        if (!url) { setPill(youtubeStatus, 'Add a YouTube link first.', 'error'); return; }
+        setPill(youtubeStatus, 'Fetching transcript...');
+        setGlobalStatus('Processing');
+        try {
+            const response = await fetch(`${apiBase}/youtube-notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.detail || response.statusText);
+            generationOutput.value = payload.notes || '';
+            setPill(youtubeStatus, 'Notes ready.', 'success');
+            setGlobalStatus('Complete');
+        } catch (error) {
+            setPill(youtubeStatus, `Error: ${error.message}`, 'error');
+            setGlobalStatus('Error');
+        }
+    }
+
+    navButtons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = link.dataset.nav;
+            if (target === 'workspace') {
+                showView('workspace');
+            } else if (target === 'login') {
+                showView('login');
+            } else {
+                showView('landing');
+            }
+        });
+    });
+    ctaStart.addEventListener('click', () => showView('login'));
+    ctaLaunch.addEventListener('click', () => showView('login'));
+    loginSubmit.addEventListener('click', () => showView('workspace'));
+    toggleTranscriptButton.addEventListener('click', () => collapseTranscript());
+    transcriptOutput.addEventListener('input', updateTranscriptPreview);
+    liveToggle.addEventListener('click', () => liveTimer ? stopLiveStream() : startLiveStream());
+    uploadButton.addEventListener('click', transcribeUpload);
+    generationButton.addEventListener('click', runGeneration);
+    docNotesButton.addEventListener('click', runDocNotes);
+    youtubeNotesButton.addEventListener('click', runYouTubeNotes);
+
+    setMode('live');
+    showView('landing');
+    updateTranscriptPreview();
+</script>
+</body>
+</html>
